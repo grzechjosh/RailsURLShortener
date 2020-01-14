@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+
+
+puts "Welcome to Josh's URLShortener".blue
+puts "Please enter your email.".red
+userEmail = gets.chomp
+user = User.where(email: userEmail)
+if User.exists?(email: userEmail)
+    user = User.where(email: userEmail).take!
+else
+    user = User.new
+    user.email = userEmail
+    user.save
+end
+puts "Thank you! Would you like to create a new ShortUrl? Y for yes and N for no.".blue
+newUrl = gets.chomp
+if newUrl.downcase == "y"
+    puts "Please enter a URL to shorten.".red
+    userUrl = gets.chomp
+    currentURLs = 
+    if ShortenedUrl.exists?(long_url: userUrl)
+        shortenedUrl = ShortenedUrl.where(long_url: userUrl).take!
+        puts "That URL already exists in our system. The ShortUrl is".red 
+        puts "#{shortenedUrl.short_url}".blue 
+        puts "Would you like to visit it?".red
+        userAns = gets.chomp
+        if userAns.downcase == 'y'
+            user = User.where(email: userEmail)
+            userId = user.ids
+            Visit.record_visit!(userId[0], shortenedUrl.short_url)
+            puts "Thank you for using Josh's URLShortener!".blue
+            Launchy.open( shortenedUrl.long_url )
+        else
+            puts "Thank you for using Josh's URLShortener!".blue
+        end
+    else
+        shortUrl = ShortenedUrl.new
+        shortUrl.user_id = user.id
+        shortUrl.set_url(userUrl)
+        shortUrl.save
+        puts "Your URL has been successfully saved and shortened. Your ShortUrl is".red 
+        puts "#{shortUrl.short_url}".blue 
+        puts "Would you like to visit it?".red
+        visitAnswer = gets.chomp
+        if visitAnswer.downcase == "y"
+            puts "Thank you for using Josh's URLShortener!".blue
+            Visit.record_visit!(user.id, shortUrl.short_url)
+            Launchy.open( shortUrl.long_url )
+        else
+            puts "Thank you for using Josh's URLShortener!".blue
+        end
+    end
+else
+    puts "Please enter the ShortURL of the URL you'd like to visit."
+    shortUrl = gets.chomp
+    if ShortenedUrl.exists?(short_url: shortUrl)
+        puts "Thank you for using Josh's URLShortener!".blue 
+        launchUrl = ShortenedUrl.where(short_url: shortUrl).take!
+        Visit.record_visit!(user.id, launchUrl.short_url)
+        Launchy.open( launchUrl.long_url )
+    else
+        puts "Sorry! That URL does not exist in our system. Please try again."
+    end 
+end
+
+
+
